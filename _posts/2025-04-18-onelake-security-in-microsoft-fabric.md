@@ -11,7 +11,7 @@ tag: [Fabric Security]
 image:
   path: /commons/2025-04-13-onelake-security-in-microsoft-fabric-header.png
   lqip: data:image/webp;base64,UklGRpoAAABXRUJQVlA4WAoAAAAQAAAADwAABwAAQUxQSDIAAAARL0AmbZurmr57yyIiqE8oiG0bejIYEQTgqiDA9vqnsUSI6H+oAERp2HZ65qP/VIAWAFZQOCBCAAAA8AEAnQEqEAAIAAVAfCWkAALp8sF8rgRgAP7o9FDvMCkMde9PK7euH5M1m6VWoDXf2FkP3BqV0ZYbO6NA/VFIAAAA
-  #alt: Responsive rendering of Chirpy theme on multiple devices.
+  #alt: Your alt-text here.
 ---
 If you're new to Fabric, think of it like this: It’s a unified platform for data and AI — and at the heart of it is OneLake — your single, massive data lake for your whole organization.
 
@@ -53,6 +53,7 @@ You can even apply roles to shortcuts — and the security still holds. 🔐 Sec
 ### Power BI, SQL Endpoint and Notebooks in action
 
 The cool part? These roles work across every tool.
+
 - In Power BI: only allowed data appears in reports
 - In Notebooks: data science work respects your role
 - In SQL: users can query, but only what they’re permitted to see
@@ -66,5 +67,6 @@ OneLake Security brings cross-engine, centralized data protection to your lake. 
 It’s now in preview — go check it out and give your data the protection it deserves!
 
 📌 Links to learn more:
+
 - [Microsoft Fabric updates blog](https://blog.fabric.microsoft.com/en-us/blog/the-next-evolution-of-onelake-security-enters-early-preview?ft=All)
 - [OneLake security documentation](https://learn.microsoft.com/en-us/fabric/onelake/security/get-started-security)
