@@ -7,6 +7,6 @@ author: Clyde Rodrigo
 date: 2025-04-12
 #categories: [Misc]
 #tag: [test page]
-pin: true
+#pin: true
 ---
 Hello world!

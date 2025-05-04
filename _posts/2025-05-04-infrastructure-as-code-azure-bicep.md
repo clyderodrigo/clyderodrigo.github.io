@@ -1,6 +1,6 @@
 ---
-# layout: post
-title: Exploring Infrastructure as Code (IaC): My Initial Steps with Azure Bicep
+#layout: post
+title: My Introduction to Azure Bicep — Exploring Infrastructure as Code (IaC)
 description: >-
     Intro to Bicep, it's advantages over ARM templates, and setting up the dev environment. 
 author: clyde
@@ -14,38 +14,34 @@ image:
   #alt: Your alt-text here.
 ---
 
-> *“Simplicity is the ultimate sophistication” —Leonardo Da Vinci, and probably every engineer at some point.*
+## “Simplicity is the ultimate sophistication” —Leonardo Da Vinci, and probably every engineer at some point.
 
 I'm not going into this as an infrastructure pro.
-I'm not from a DevOps background. Heck.. until a year and a half ago I wasn't even in development (I was in HR. Long story..).
+I'm not from a DevOps background. Heck. Until a year and a half ago I wasn't even in development (I was in HR. Long story..).
 
-Anyway... last week at work, I deployed infrastructure for an analytics platform solution with Azure DevOps pipelines. 
-And I found it all very intriguing.
+And anyway... last week at work, I deployed infrastructure for an analytics platform solution with Azure DevOps pipelines. 
+Infrastructure as Code (IaC) is intriguing and powerful stuff.
 
 So I'm diving into this as an aspiring Data (and AI) engineering pro —exploring the technical verticals of what I'm seeing on-the-job.
-It's not just about surviving the next sprint, right? 🌚 (Sometimes, yes it is.)
+It's not just about surviving the next sprint, right? 🌚 (Sometimes.)
 
-## Prebrief: Analytics Platform & Business Intelligence
-**Business Intelligence (BI)** is a enterprise practice. It's about having the right info at the right time to make the right decisions. And it's current evolution puts BI tools and analytics insights in the hands of every decision maker, not just data specialists. **Analytics** surfaces meaningful patterns in data using business semantic modelling and advanced modelling(AI/ML) techniques. Insights from Analytics can be descriptive, diagnostic, predictive and prescriptive in nature - ranging from interpretations to recommendations. 
-
-The unified **Analytics Platform** is an automated solution we build for enterprises that removes the complexity surrounding collecting, pre-processing and serving business data from across various sources such as databases, spreadsheets, and cloud services - so that users can focus on getting analytics insights into their business operations. 
-Unlike reporting tools that are locked into a given system, the analytics platform is in full business control and adaptive:
-- New data sources can be connected as needs evolve
-- Analytics consumers can perform self-service analysis with dashboards, reporting, alerts and AI agents 
-- Analytics authors can build new dashboards and reporting with ease
-
+## My Infrastructure Deployment: for Analytics Platforms
+![](/posts/images/20250504-0.png)
 
 ## Why Infrastructure-as-Code matters
 In data & analytics engineering, the default and expected focus is on ETL pipelines, data lake/lakehouse/warehouse storage, data modelling and dashboards. These are what fundamentally bring an Analytics Platform's operations to life. But if the layout of components of the analytics platform isn't repeatable and extensible (not forgetting secure), well then you'll find yourself clicking your way through provisioning Azure resources for your next projects and you'll find that each one is duct taped together a little differently- in ways that might cause problems later on.
 IaC solves this. Infrastructure setups are codified, version controlled and deployable across environments with no drama.
 
-Production-grade Azure IaC is like a machine with many cogs working together to get things moving.
-- Azure Bicep
-- Modular and extensible infrastructure-as-code
-- Deployments with environment separation
-- CI/CD automation through Azure DevOps
-- Alignment with Microsoft’s Cloud Adoption Framework & recommendations
-- Policy-as-Code (Governance-as-Code)
+> Production-grade Azure IaC is like a machine with many cogs working together to get things moving.
+{: .prompt-warning }
+
+Production-grade Azure IaC scope:
+1. Azure Bicep (or Terraform)
+2. Modular and extensible infrastructure-as-code
+3. Deployments with environment separation
+4. CI/CD automation through Azure DevOps
+5. Alignment with Microsoft’s Cloud Adoption Framework & recommendations
+6. Policy-as-Code (Governance-as-Code)
 
 
 ## What is Azure Bicep and why did I start there?
@@ -56,7 +52,7 @@ It simplifies Azure resource deployments. And it's a clean, readable next-gen up
 
 What makes Bicep tick:
 
-* **Native to Azure**
+* Native to Azure
 * Reads like code
 * Built for modularity and reuse
 
@@ -69,17 +65,21 @@ While 'Terraform' exists as a cross-platform alternative, Bicep is a no brainer 
 
 If you've got the Azure CLI installed (which you should if you’re working in Azure), run:
 
-```Azure CLI
+```bash
 az bicep install
 ```
 
 Done. Verify it:
 
-```Azure CLI
+```bash
 bicep --version
 ```
 
+![](/posts/images/20250504-1.png)
+_Bicep installation_
+
 > *Quick Tip:* Install the Bicep extension on VS Code for autocomplete and issue flags.
+{: .prompt-tip }
 
 [Install Bicep](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install)
 
@@ -89,7 +89,7 @@ bicep --version
 
 I'm writing a bicep file that provisions a Storage Account. Here’s what my Bicep file (`main.bicep`) looks like:
 
-```bicep
+```
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: 'devcr46azdemost'
   location: resourceGroup().location
@@ -102,20 +102,26 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
 
 It is readable, declarative, and tweakable. This made sense. 
 
+![](/posts/images/20250504-2.png)
+_Azure deployment of main.bicep_
+
 ## Step 3: Deploying It to Azure
 
 I already have a resource group called dev-cr46-az-demo-rg, so this is my deployment command:
 
-```Azure CLI
+```bash
 az deployment group create \
   --resource-group dev-cr46-az-demo-rg \
   --template-file "$HOME/Dev/main.bicep"
 ```
 
+![](/posts/images/20250504-3.png)
+_Successful Azure deployment_
+
 And... we should be good to go! Run this script—the resource group and storage account gets deployed from code. 
 No clicking around Azure Portal. No manual errors. Just repeatable, testable infrastructure with Bicep and Azure CLI.
 
-This bicep demo is the first cog in the machine takes us to production-grade Azure IaC.
+**This bicep post is the first cog in the machine takes us to production-grade Azure IaC.**
 
 ## References
 
