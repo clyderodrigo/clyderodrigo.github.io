@@ -1,14 +1,13 @@
 ---
 #layout: post
-title: The Platform Is the Agent: Choosing Your AI Runtime for Models, MCP, and Tools
+title: The Platform Is the Agent. Choosing Your AI Runtime for Models, MCP, and Tools.
 description: >-
-    Before you write a single line of agent logic, you make a decision that constrains everything else: which platform runs your agent. That platform — your runtime — determines which models you can use, how tools connect, where data flows, who can govern it, and what you pay.
+    Before you write a single line of agent logic, you make a decision that constrains everything else, which platform runs your agent. That platform — your runtime — determines which models you can use, how tools connect, where data flows, who can govern it, and what you pay.
 author: clyde
 date: 2026-04-02
 categories: [Agentic AI]
 tag: [Agentic AI]
 ---
-
 # The Platform Is the Agent: Choosing Your AI Runtime for Models, MCP, and Tools
 
 ## Key Takeaways

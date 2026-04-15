@@ -7,7 +7,7 @@ author: clyde
 date: 2025-05-04
 categories: [Azure DevOps, Infrastructure as Code]
 tag: [Azure DevOps, Infrastructure as Code, Bicep, Azure CLI]
-pin: true
+pin: false
 image:
   path: https://fictal.com/wp-content/uploads/2022/03/azure-bicep-logos-1000x493.png
   lqip: data:image/webp;base64,UklGRpoAAABXRUJQVlA4WAoAAAAQAAAADwAABwAAQUxQSDIAAAARL0AmbZurmr57yyIiqE8oiG0bejIYEQTgqiDA9vqnsUSI6H+oAERp2HZ65qP/VIAWAFZQOCBCAAAA8AEAnQEqEAAIAAVAfCWkAALp8sF8rgRgAP7o9FDvMCkMde9PK7euH5M1m6VWoDXf2FkP3BqV0ZYbO6NA/VFIAAAA
@@ -18,13 +18,12 @@ image:
 I'm NOT diving into this as a DevOps or CI/CD pro. Rather, an aspiring one — keen to explore the technical verticals of what I'm seeing on-the-job.
 Heck. Until a year and a half ago I wasn't even in engineering and consulting (I was in HR. Long story..).
 
-> The infrastructure layer of an analytics platform gets deep fast —networks, storage, services/compute, security, governance, and it branches into environments. 
-{: .prompt-info }
+> The infrastructure layer of an analytics platform gets deep fast —networks, storage, services/compute, security, governance, and it branches into environments.
+> {: .prompt-info }
 
-You need consistency. And, at work I experienced deploying infrastructure for an analytics platform solution with Azure DevOps pipelines. 
+You need consistency. And, at work I experienced deploying infrastructure for an analytics platform solution with Azure DevOps pipelines.
 
 Infrastructure as Code (IaC) is intriguing and powerful stuff.
-
 
 ## My Infrastructure Deployment @ work —for Analytics Platforms
 
@@ -36,9 +35,8 @@ In data & analytics engineering, the default focus is on data pipelines, lake/la
 
 IaC solves this. Infrastructure setups are codified, version controlled and deployable across environments with no drama.
 
-
 > Production-grade Azure IaC is like a machine with many cogs working together to get things moving.
-{: .prompt-info }
+> {: .prompt-info }
 
 Production-grade Azure IaC scope:
 
@@ -68,6 +66,7 @@ While 'Terraform' exists as a cross-platform alternative, Bicep is a no brainer 
 🗡️
 
 ## 3| Deploying Environments with Bicep
+
 We focus on using Bicep to deploy an environment —your IaC example will deploy just a storage account. I will install the Bicep CLI locally and write a simple bicep file to deploy a storage account on Azure.
 
 I will employ paramterization in your code. When deploying resources across multiple environments (dev, test, prod), parameterization lets you Keep the core logic clean and reuse the same logic across environment deployments.
@@ -79,6 +78,7 @@ I will employ paramterization in your code. When deploying resources across mult
 If you've got the Azure CLI installed (which you should if you’re working in Azure), run:
 
 `bash`
+
 ```bash
 az bicep install
 ```
@@ -93,7 +93,7 @@ bicep --version
 _Bicep installation_
 
 > Install the Bicep extension on VS Code for autocomplete and issue flags.
-{: .prompt-tip }
+> {: .prompt-tip }
 
 [Install Bicep CLI – MS Docs](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/install)
 
@@ -104,6 +104,7 @@ _Bicep installation_
 I'm writing a flat bicep file that provisions a Storage Account. Here’s what my Bicep file looks like:
 
 `main.bicep`
+
 ```
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: storageAccountName
@@ -118,6 +119,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
 Now I create a basic parameter file for provisioning our dev environment resource:
 
 `dev.parameters.json`
+
 ```
 {
   "parameters": {
@@ -127,6 +129,7 @@ Now I create a basic parameter file for provisioning our dev environment resourc
   }
 }
 ```
+
 Similar parameter files can be created for test and production resource provisioning with different naming tiers (Examples:  'tstcr46azdemost', 'prdcr46azdemost').
 
 Together, the bicep file and parameter file code is readable, declarative, and reconfigurable. This made sense.
@@ -139,6 +142,7 @@ _Azure deployment of main.bicep_
 I already have a resource group called dev-cr46-az-demo-rg, so this is how I will run the deployment via CLI:
 
 `bash`
+
 ```bash
 az deployment group create \
   --resource-group dev-cr46-az-demo-rg \
@@ -168,7 +172,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' = { ... }
 resource storage 'Microsoft.Storage/storageAccounts@2021-04-01' = { ... }
 ```
 
-To this: 
+To this:
 
 ```
 module vnet './modules/vnet.bicep' = {
@@ -182,11 +186,11 @@ module vnet './modules/vnet.bicep' = {
 
 What you get is a reusable building block for deploying a virtual network resource. Need to deploy several vnets? Just call the vnet module in `main.bicep` and specify the parameters to be passed on, for each vnet. Same logic. Zero duplication.
 
-
 ### 4.1| Create a Module File with Bicep
 
 `vnet.bicep`
-``` 
+
+```
 param name string
 param addressPrefix string
 
@@ -204,6 +208,7 @@ resource vnet 'Microsoft.Network/virtualNetworks@2021-02-01' = {
 ### 4.2| Call Module from the Main File
 
 `main.bicep`
+
 ```
 module vnet './modules/vnet.bicep' = {
   name: 'analytics-vnet'
@@ -215,17 +220,17 @@ module vnet './modules/vnet.bicep' = {
 ```
 
 > Keep modules tight with one resource per module, unless tightly coupled with other resources. That way, complexity is composable, and not baked-in.
-{: .prompt-tip }
+> {: .prompt-tip }
 
 With modularized code, you think like an engineer. I'm not just building for the requirement now. I'm writing for future ones as well.
 
 🗡️
 
-
 ## 5| Zone Design for Stepping up your IaC
 
 If bicep modules are reusable building blocks of resources, 'zones' are blueprints for specific environment setups.
 Zones are IaC design for:
+
 - Engineering specific environment setups of modules
 - Typically includes resources for logging, identity, security
 - Applies governance policies
@@ -233,6 +238,7 @@ Zones are IaC design for:
 In enterprise analytics, you deal with sensitive data, compliance requirements and heavy workloads —Zones become essential. A basic analytics-ready zone can include virtual networks, a log analytics workspace, a key vault, Role assignments and so on.
 
 Structure your Infrastructure as code repo like this:
+
 ```
 /landing-zone/
 ├── main.bicep
@@ -243,6 +249,7 @@ Structure your Infrastructure as code repo like this:
 ```
 
 In main.bicep, orchestrate your modules:
+
 ```
 module vnet './modules/vnet.bicep' = {
   name: 'vnet'
@@ -258,12 +265,13 @@ module logs './modules/loganalytics.bicep' = {
 🗡️
 
 ## 6| Wrap up
+
 IaC isn't just deploying resources. It's engineering repeatable and extensible environments, and letting me focus on building the analytics platform.
 
 **This is how environments for analytics are built. Not with glue—but with patterns.**
 
 > This bicep post places 4 important cogs in the machine that drives us to production-grade Azure IaC: IaC with Azure Bicep, Parameterization, Bicep modules, and Zone design.
-{: .prompt-info }
+> {: .prompt-info }
 
 ## References
 
