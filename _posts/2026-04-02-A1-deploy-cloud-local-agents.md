@@ -1,12 +1,12 @@
 ---
 #layout: post
-title: The Execution Layer for AI Agents — Managed Platforms like AI Foundry, OpenAI & Copilot Studio Embedded Runtimes like Power Platform & VSCode
+title: The Execution Layer for AI Agents — Managed Platforms like AI Foundry, OpenAI & Copilot Studio — Embedded Runtimes like Power Platform & VSCode
 description: >-
   The Platform Is the Agent. Choosing Your AI Runtime for Models, MCP, and Tools.
 author: clyde
 date: 2026-04-02
 categories: [Agentic AI]
-tag: [Agentic AI
+tag: [Agentic AI]
 ---
 # The Execution Layer for AI Agents — Managed Platforms like AI Foundry, OpenAI & Copilot Studio **—** Embedded Runtimes like Power Platform & VSCode
 
@@ -15,14 +15,7 @@ tag: [Agentic AI
 - A runtime hosts the full agent stack: model, tools, MCP servers, governance. It's not just an inference endpoint anymore.
 - Managed cloud platforms (AI Foundry, Bedrock, OpenAI, Copilot Studio) give you enterprise data residency, RBAC, and audit trails — this is where production agents belong.
 - Embedded application runtimes (M365, VS Code, Dynamics, Fabric, Power Platform) meet users where they work — the agent is part of the tool, not a separate system to adopt.
-- MCP is the connective tissue. All major runtimes now support MCP server connections — design your tools as MCP servers and they become portable across the stack.
-- Governance must be enforced at the runtime level, not just in agent code. Platform-level guardrails (Bedrock Guardrails, Azure Content Safety, Power Platform DLP) cannot be bypassed by a misconfigured prompt.
-
----
-
-Before you write a single line of agent logic, you make a decision that constrains everything else: which platform runs your agent. That platform — your runtime — determines which models you can use, how tools connect, where data flows, who can govern it, and what you pay.
-
-Get the runtime decision right and everything else builds cleanly. Get it wrong and you're re-architecting six months in.
+- Model Context Protocol is the connective tissue. All major runtimes now support MCP server connections — design your tools as MCP servers and they become portable across the stack.
 
 ---
 
@@ -410,5 +403,9 @@ The runtime decision maps directly to use case, audience, and governance require
 | **VS Code**         | Developer productivity, code-adjacent tasks         | Developers        | Workspace + org policy         |
 | **Power Automate**  | Business process automation, cross-system workflows | Business analysts | DLP + connection governance    |
 | **Power BI**        | Data analysis, reporting, semantic layer queries    | Business users    | Sensitivity labels + RLS       |
+
+Before you write a single line of agent logic, you make a decision that constrains everything else: which platform runs your agent. That platform — your runtime — determines which models you can use, how tools connect, where data flows, who can govern it, and what you pay.
+
+Get the runtime decision right and everything else builds cleanly. Get it wrong and you're re-architecting six months in.
 
 **The runtime is not a deployment detail. It defines your model access, tool connectivity, governance posture, and the audience you can realistically serve.** Pick the platform that matches your target outcome — then build the agent to fit.
