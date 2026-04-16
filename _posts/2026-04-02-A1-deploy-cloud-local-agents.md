@@ -1,14 +1,14 @@
 ---
 #layout: post
-title: The Platform Is the Agent. Choosing Your AI Runtime for Models, MCP, and Tools.
+title: The Execution Layer for AI Agents: Managed Platforms like AI Foundry, OpenAI & Copilot Studio vs Embedded Runtimes like Power Platform & VSCode
 description: >-
-    Before you write a single line of agent logic, you make a decision that constrains everything else, which platform runs your agent. That platform — your runtime — determines which models you can use, how tools connect, where data flows, who can govern it, and what you pay.
+  The Platform Is the Agent. Choosing Your AI Runtime for Models, MCP, and Tools.
 author: clyde
 date: 2026-04-02
 categories: [Agentic AI]
-tag: [Agentic AI]
+tag: [Agentic AI
 ---
-# The Platform Is the Agent: Choosing Your AI Runtime for Models, MCP, and Tools
+# The Execution Layer for AI Agents: Managed Platforms like AI Foundry, OpenAI & Copilot Studio vs Embedded Runtimes like Power Platform & VSCode
 
 ## Key Takeaways
 
