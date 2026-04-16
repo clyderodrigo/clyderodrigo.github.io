@@ -1,6 +1,6 @@
 ---
 #layout: post
-title: The Execution Layer for AI Agents — Managed Platforms like AI Foundry, OpenAI & Copilot Studio — Embedded Runtimes like Power Platform & VSCode
+title: The Execution Layer for AI Agents — Managed Platforms like AI Foundry, OpenAI & Copilot Studio Embedded Runtimes like Power Platform & VSCode
 description: >-
   The Platform Is the Agent. Choosing Your AI Runtime for Models, MCP, and Tools.
 author: clyde
