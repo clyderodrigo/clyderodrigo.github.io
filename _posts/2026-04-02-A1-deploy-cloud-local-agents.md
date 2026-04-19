@@ -1,6 +1,6 @@
 ---
 #layout: post
-title: The Execution Layer for AI Agents — Managed Platforms like AI Foundry, OpenAI & Copilot Studio — Embedded Runtimes like Power Platform & VSCode
+title: The Execution Layer for AI Agents & Agentic Workflows **—** Managed Platforms like AI Foundry, OpenAI & Copilot Studio **—** Embedded Runtimes like Power Platform & VSCode
 description: >-
   The Platform Is the Agent. Choosing Your AI Runtime for Models, MCP, and Tools.
 author: clyde
@@ -8,11 +8,9 @@ date: 2026-04-02
 categories: [Agentic AI]
 tag: [Agentic AI]
 ---
-# The Execution Layer for AI Agents — Managed Platforms like AI Foundry, OpenAI & Copilot Studio **—** Embedded Runtimes like Power Platform & VSCode
-
 ## Key Takeaways
 
-- A runtime hosts the full agent stack: model, tools, MCP servers, governance. It's not just an inference endpoint anymore.
+- The agent runtime hosts the full stack for deploying agents and agent workflows: model, tools, MCP servers, governance. It's not just an inference endpoint anymore.
 - Managed cloud platforms (AI Foundry, Bedrock, OpenAI, Copilot Studio) give you enterprise data residency, RBAC, and audit trails — this is where production agents belong.
 - Embedded application runtimes (M365, VS Code, Dynamics, Fabric, Power Platform) meet users where they work — the agent is part of the tool, not a separate system to adopt.
 - Model Context Protocol is the connective tissue. All major runtimes now support MCP server connections — design your tools as MCP servers and they become portable across the stack.
@@ -21,7 +19,7 @@ tag: [Agentic AI]
 
 ## What a Runtime Actually Is
 
-An AI agent runtime is the platform that hosts the full agent stack: the model, the tool connections, the MCP servers, the memory layer, the execution loop, and the governance controls.
+A agent runtime is the platform that hosts the full AI stack: the model, the tool connections, the MCP servers, the memory layer, the execution loop, and the governance controls.
 
 ```
 ┌─────────────────────────── RUNTIME ──────────────────────────────┐
@@ -37,7 +35,7 @@ An AI agent runtime is the platform that hosts the full agent stack: the model, 
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-The runtime is not just the inference endpoint. It's the entire operating environment — and choosing it is an architectural decision, not an implementation detail.
+The runtime is not just the inference endpoint. It's the entire operating environment for deploying agents with autonomy and semi or fully orchestrated agentic workflows — and choosing it is an architectural decision, not an implementation detail.
 
 ---
 
@@ -64,57 +62,128 @@ Azure AI Foundry is Microsoft's unified platform for building, deploying, and go
 - **Connections**: Pre-built integrations to Azure Storage, Cognitive Search, SQL, Fabric, and third-party APIs
 - **Governance**: Azure RBAC, private endpoints, VNet injection, content filtering, audit logs, Microsoft Purview integration
 
+**Set up an agent workflow with Code Interpreter tool access in the Python SDK:**
+
 ```python
-from azure.ai.projects import AIProjectClient
-from azure.ai.projects.models import FileSearchTool, CodeInterpreterTool
+"""
+The following Python sample shows how to create an agent with the code interpreter tool, upload a CSV file for analysis,
+and request a bar chart based on the data. It demonstrates a complete workflow: upload a file, create an agent with Code
+Interpreter enabled, request data visualization, and download the generated chart.
+"""
+import os
 from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
+from azure.ai.projects.models import PromptAgentDefinition, CodeInterpreterTool, AutoCodeInterpreterToolParam
 
-client = AIProjectClient.from_connection_string(
-    conn_str="eastus.api.azureml.ms;your-subscription-id;your-rg;your-project",
-    credential=DefaultAzureCredential()
+# Load the CSV file to be processed
+asset_file_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../assets/synthetic_500_quarterly_results.csv")
 )
 
-# Create an agent with tools
-agent = client.agents.create_agent(
-    model="gpt-4o",
-    name="ops-analyst",
-    instructions="You are an operations analyst. Use file search and code interpreter for data tasks.",
-    tools=[FileSearchTool().definitions, CodeInterpreterTool().definitions],
-    tool_resources=FileSearchTool(vector_store_ids=["vs_your_store_id"]).resources,
+# Format: "https://resource_name.ai.azure.com/api/projects/project_name"
+PROJECT_ENDPOINT = "your_project_endpoint"
+
+# Create clients to call Foundry API
+project = AIProjectClient(
+    endpoint=PROJECT_ENDPOINT,
+    credential=DefaultAzureCredential(),
+)
+openai = project.get_openai_client()
+
+# Upload the CSV file for the code interpreter to use
+file = openai.files.create(purpose="assistants", file=open(asset_file_path, "rb"))
+
+# Create agent with code interpreter tool
+agent = project.agents.create_version(
+    agent_name="MyAgent",
+    definition=PromptAgentDefinition(
+        model="gpt-5-mini",
+        instructions="You are a helpful assistant.",
+        tools=[CodeInterpreterTool(container=AutoCodeInterpreterToolParam(file_ids=[file.id]))],
+    ),
+    description="Code interpreter agent for data analysis and visualization.",
 )
 
-# Create a thread and run
-thread = client.agents.create_thread()
-client.agents.create_message(
-    thread_id=thread.id,
-    role="user",
-    content="Analyze the attached incident logs and summarize recurring failure patterns."
+# Create a conversation for the agent interaction
+conversation = openai.conversations.create()
+
+# Send request to create a chart and generate a file
+response = openai.responses.create(
+    conversation=conversation.id,
+    input="Could you please create bar chart in TRANSPORTATION sector for the operating profit from the uploaded csv file and provide file to me?",
+    extra_body={"agent_reference": {"name": agent.name, "type": "agent_reference"}},
 )
 
-run = client.agents.create_and_process_run(
-    thread_id=thread.id,
-    agent_id=agent.id
-)
-print(run.status)
+# Extract file information from response annotations
+file_id = ""
+filename = ""
+container_id = ""
+
+# Get the last message which should contain file citations
+last_message = response.output[-1]  # ResponseOutputMessage
+if (
+    last_message.type == "message"
+    and last_message.content
+    and last_message.content[-1].type == "output_text"
+    and last_message.content[-1].annotations
+):
+    file_citation = last_message.content[-1].annotations[-1]  # AnnotationContainerFileCitation
+    if file_citation.type == "container_file_citation":
+        file_id = file_citation.file_id
+        filename = file_citation.filename
+        container_id = file_citation.container_id
+        print(f"Found generated file: {filename} (ID: {file_id})")
+
+# Clean up resources
+project.agents.delete_version(agent_name=agent.name, agent_version=agent.version)
+
+# Download the generated file if available
+if file_id and filename:
+    file_content = openai.containers.files.content.retrieve(file_id=file_id, container_id=container_id)
+    print(f"File ready for download: {filename}")
+    file_path = os.path.join(os.path.dirname(__file__), filename)
+    with open(file_path, "wb") as f:
+        f.write(file_content.read())
+    print(f"File downloaded successfully: {file_path}")
+else:
+    print("No file generated in response")
 ```
 
-**MCP integration in AI Foundry:**
+**Expected output:**
+
+```Console
+Found generated file: transportation_operating_profit_bar_chart.png (ID: file-xxxxxxxxxxxxxxxxxxxx)
+File ready for download: transportation_operating_profit_bar_chart.png
+File downloaded successfully: transportation_operating_profit_bar_chart.png
+```
+
+The agent uploads your CSV file to Azure storage, creates a sandboxed Python environment, analyzes the data to filter transportation sector records, generates a PNG bar chart showing operating profit by quarter, and downloads the chart to your local directory. The file annotations in the response provide the file ID and container information needed to retrieve the generated chart.
+
+**Set up MCP integration with agents in AI Foundry:**
 
 ```python
-from azure.ai.projects.models import McpTool
+"""
+Shows how to connect an MCP server as a tool source. The sample code connects to GitHub MCP Server.
+"""
+from azure.ai.projects.models import PromptAgentDefinition, MCPTool
 
-# Connect an MCP server as a tool source
-mcp_tool = McpTool(
-    server_label="internal-ops",
-    server_url="https://your-mcp-server.internal/sse",
-    allowed_tools=["get_service_status", "tail_logs", "query_incidents"]
+# [START tool_declaration]
+tool = MCPTool(
+    server_label="api-specs",
+    server_url="https://api.githubcopilot.com/mcp",
+    require_approval="always",
+    project_connection_id=MCP_CONNECTION_NAME,
 )
+# [END tool_declaration]
 
-agent = client.agents.create_agent(
-    model="gpt-4o",
-    name="ops-agent",
-    instructions="You have access to ops tools via MCP.",
-    tools=mcp_tool.definitions
+# Create a prompt agent with MCP tool capabilities
+agent = project.agents.create_version(
+    agent_name="MyAgent7",
+    definition=PromptAgentDefinition(
+        model="gpt-5-mini",
+        instructions="Use MCP tools as needed",
+        tools=[tool],
+    ),
 )
 ```
 
@@ -134,56 +203,180 @@ Bedrock is AWS's managed AI runtime — model-agnostic by design, with first-cla
 - **Guardrails**: Content filtering, PII redaction, topic restrictions — applied at the platform level, not in code
 - **Governance**: AWS IAM, VPC endpoints, CloudTrail, PrivateLink, HIPAA/SOC2/FedRAMP eligible
 
-```python
-import boto3, json
-
-bedrock_agent = boto3.client("bedrock-agent-runtime", region_name="us-east-1")
-
-# Invoke a Bedrock Agent (model + tools + KB wired together in the console or IaC)
-response = bedrock_agent.invoke_agent(
-    agentId="AGENT_ID",
-    agentAliasId="TSTALIASID",
-    sessionId="session-001",
-    inputText="Which services had the most P1 incidents last quarter? Cross-reference with deployment logs."
-)
-
-# Stream the response
-for event in response["completion"]:
-    if "chunk" in event:
-        print(event["chunk"]["bytes"].decode(), end="", flush=True)
-```
-
-**Calling models directly (without Agents runtime):**
+**Set up a multi-turn agent workflow in Bedrock Agent Runtime with Python SDK (Boto3):**
 
 ```python
-import boto3, json
+"""
+Shows how to run a Bedrock flow with InvokeFlow and handle muli-turn interaction for a single conversation.
+"""
+import logging
+import boto3
+import botocore
 
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+import botocore.exceptions
 
-# Claude on Bedrock
-response = bedrock.invoke_model(
-    modelId="anthropic.claude-opus-4-5-20241022-v2:0",
-    body=json.dumps({
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 2048,
-        "tools": [...],   # same tool schema as Anthropic API
-        "messages": [{"role": "user", "content": "Summarize this incident report."}]
-    })
-)
-result = json.loads(response["body"].read())
-```
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-**Bedrock Guardrails — applied to all traffic through the runtime:**
 
-```python
-# Guardrail applied at invocation — no code changes to agent logic needed
-response = bedrock.invoke_model(
-    modelId="anthropic.claude-sonnet-4-...",
-    guardrailIdentifier="your-guardrail-id",
-    guardrailVersion="1",
-    body=json.dumps({...})
-)
-# Guardrail intercepts, evaluates, and redacts before your code sees the response
+def invoke_flow(client, flow_id, flow_alias_id, input_data, execution_id):
+    """
+    Invoke an Amazon Bedrock flow and handle the response stream.
+
+    Args:
+        client: Boto3 client for Amazon Bedrock agent runtime.
+        flow_id: The ID of the flow to invoke.
+        flow_alias_id: The alias ID of the flow.
+        input_data: Input data for the flow.
+        execution_id: Execution ID for continuing a flow. Use the value None on first run.
+
+    Returns:
+        Dict containing flow_complete status, input_required info, and execution_id
+    """
+
+    response = None
+    request_params = None
+
+    if execution_id is None:
+        # Don't pass execution ID for first run.
+        request_params = {
+            "flowIdentifier": flow_id,
+            "flowAliasIdentifier": flow_alias_id,
+            "inputs": [input_data],
+            "enableTrace": True
+        }
+    else:
+        request_params = {
+            "flowIdentifier": flow_id,
+            "flowAliasIdentifier": flow_alias_id,
+            "executionId": execution_id,
+            "inputs": [input_data],
+            "enableTrace": True
+        }
+
+    response = client.invoke_flow(**request_params)
+
+    if "executionId" not in request_params:
+        execution_id = response['executionId']
+
+    input_required = None
+    flow_status = ""
+
+    # Process the streaming response
+    for event in response['responseStream']:
+
+        # Check if flow is complete.
+        if 'flowCompletionEvent' in event:
+            flow_status = event['flowCompletionEvent']['completionReason']
+
+        # Check if more input us needed from user.
+        elif 'flowMultiTurnInputRequestEvent' in event:
+            input_required = event
+
+        # Print the model output.
+        elif 'flowOutputEvent' in event:
+            print(event['flowOutputEvent']['content']['document'])
+
+        # Log trace events.
+        elif 'flowTraceEvent' in event:
+            logger.info("Flow trace:  %s", event['flowTraceEvent'])
+
+    return {
+        "flow_status": flow_status,
+        "input_required": input_required,
+        "execution_id": execution_id
+    }
+
+
+def converse_with_flow(bedrock_agent_client, flow_id, flow_alias_id):
+    """
+    Run a conversation with the supplied flow.
+
+    Args:
+        bedrock_agent_client: Boto3 client for Amazon Bedrock agent runtime.
+        flow_id: The ID of the flow to run.
+        flow_alias_id: The alias ID of the flow.
+
+    """
+
+    flow_execution_id = None
+    finished = False
+
+    # Get the intial prompt from the user.
+    user_input = input("Enter input: ")
+
+    # Use prompt to create input data.
+    flow_input_data = {
+        "content": {
+            "document": user_input
+        },
+        "nodeName": "FlowInputNode",
+        "nodeOutputName": "document"
+    }
+
+    try:
+        while not finished:
+            # Invoke the flow until successfully finished.
+
+            result = invoke_flow(
+                bedrock_agent_client, flow_id, flow_alias_id, flow_input_data, flow_execution_id)
+
+            status = result['flow_status']
+            flow_execution_id = result['execution_id']
+            more_input = result['input_required']
+            if status == "INPUT_REQUIRED":
+                # The flow needs more information from the user.
+                logger.info("The flow %s requires more input", flow_id)
+                user_input = input(
+                    more_input['flowMultiTurnInputRequestEvent']['content']['document'] + ": ")
+                flow_input_data = {
+                    "content": {
+                        "document": user_input
+                    },
+                    "nodeName": more_input['flowMultiTurnInputRequestEvent']['nodeName'],
+                    "nodeInputName": "agentInputText"
+
+                }
+            elif status == "SUCCESS":
+                # The flow completed successfully.
+                finished = True
+                logger.info("The flow %s successfully completed.", flow_id)
+
+    except botocore.exceptions.ClientError as e:
+        print(f"Client error: {str(e)}")
+        logger.error("Client error: %s", {str(e)})
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        logger.error("An error occurred: %s", {str(e)})
+        logger.error("Error type: %s", {type(e)})
+
+
+def main():
+    """
+    Main entry point for the script.
+    """
+
+    # Replace these with your actual flow ID and flow alias ID.
+    FLOW_ID = 'YOUR_FLOW_ID'
+    FLOW_ALIAS_ID = 'YOUR_FLOW_ALIAS_ID'
+
+    logger.info("Starting conversation with FLOW: %s ID: %s",
+                FLOW_ID, FLOW_ALIAS_ID)
+
+    # Get the Bedrock agent runtime client.
+    session = boto3.Session(profile_name='default')
+    bedrock_agent_client = session.client('bedrock-agent-runtime')
+
+    # Start the conversation.
+    converse_with_flow(bedrock_agent_client, FLOW_ID, FLOW_ALIAS_ID)
+
+    logger.info("Conversation with FLOW: %s ID: %s finished",
+                FLOW_ID, FLOW_ALIAS_ID)
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 **Choose Bedrock when:** You are AWS-native, need multi-model flexibility, want managed guardrails applied infrastructure-wide, or are targeting FedRAMP/HIPAA workloads.
@@ -192,93 +385,128 @@ response = bedrock.invoke_model(
 
 ### OpenAI Platform
 
-OpenAI's managed platform is the most capable API surface for GPT-4o and o3 models, with a growing Responses API that supports built-in tools and persistent agent state.
+OpenAI's managed platform is the most capable API surface for GPT-4 and GPT-5 series models, with a growing Responses API that supports built-in tools and persistent agent state.
 
 **What it provides:**
 
-- **Models**: GPT-4o, o3, o3-mini — the full OpenAI frontier model lineup at lowest latency
+- **Models**: GPT-4, GPT-5 series — the full OpenAI frontier model lineup at lowest latency
 - **Responses API**: Stateful agent runs with streaming, tool calling, and built-in tools (web search, file search, code interpreter, computer use)
 - **Assistants**: Persistent agent configuration with threads, file attachments, and vector stores
 - **MCP servers**: The Responses API connects to remote MCP servers directly
 - **Governance**: Project-level API key scoping, spend limits, usage dashboards, SOC2 Type II
+
+**Configure agent with File search in Responses API:**
+
+```python
+from openai import OpenAI
+client = OpenAI()
+
+response = client.responses.create(
+    model="gpt-4.1",
+    input="What is deep research by OpenAI?",
+    tools=[{
+        "type": "file_search",
+        "vector_store_ids": ["<vector_store_id>"]
+    }]
+)
+print(response)
+```
+
+**Configure agent with MCP connection in Responses API:**
 
 ```python
 from openai import OpenAI
 
 client = OpenAI()
 
-# Responses API — stateful, multi-turn, with built-in tool use
 response = client.responses.create(
-    model="gpt-4o",
-    instructions="You are an expert infrastructure analyst. Be precise. Cite evidence.",
-    tools=[
-        {"type": "web_search_preview"},
-        {"type": "file_search", "vector_store_ids": ["vs_your_store_id"]},
-        {"type": "code_interpreter"}
-    ],
-    input="Compare our current Kubernetes resource limits against the incident data in the attached runbook.",
+    model="gpt-4.1",
+    tools=[{
+        "type": "mcp",
+        "server_label": "shopify",
+        "server_url": "https://pitchskin.com/api/mcp",
+    }],
+    input="Add the Blemish Toner Pads to my cart"
 )
 
 print(response.output_text)
 ```
 
-**MCP connection in Responses API:**
-
-```python
-response = client.responses.create(
-    model="gpt-4o",
-    tools=[
-        {
-            "type": "mcp",
-            "server_label": "deepwiki",
-            "server_url": "https://mcp.deepwiki.com/mcp",
-            "allowed_tools": ["read_wiki_structure", "search_documentation"]
-        }
-    ],
-    input="What changed in the deployment pipeline last week?",
-)
-```
-
-**Choose OpenAI Platform when:** You need the highest-capability GPT-4o/o3 models, want the simplest integration path, or are building on top of ChatGPT's ecosystem.
+**Choose OpenAI Platform when:** You need the highest-capability GPT models, want the simplest integration path, or are building on top of ChatGPT's ecosystem.
 
 ---
 
 ### Microsoft Copilot Studio
 
-Copilot Studio is the low-code/pro-code runtime for building enterprise agents on Microsoft's infrastructure — without managing any of the underlying platform.
+Copilot Studio is the low-code/pro-code runtime for buiding enterprise agents on Microsoft's infrastructure — without managing any of the underlying platform.
 
 **What it provides:**
 
 - **Visual agent builder**: Drag-and-drop topics, actions, and branching — no SDK required for common patterns
-- **Model selection**: GPT-4o via Azure OpenAI, with content safety and responsible AI controls applied by default
+- **Model selection**: GPT models via Azure OpenAI, with content safety and responsible AI controls applied by default
 - **Connectors**: 1,000+ Power Platform connectors to Microsoft 365, Dynamics, Salesforce, ServiceNow, and custom APIs
 - **MCP support**: Declare MCP tools as agent actions — Copilot Studio handles tool calling protocol
 - **Deployment**: Publish to Teams, SharePoint, web chat, or as a standalone app with one click
 - **Governance**: Tenant-level DLP policies, admin center oversight, audit logs, data residency in your Microsoft tenant
 
-**Pro-code extension — adding custom logic:**
+**Pro-code extension — Set up custom MCP tool with Azure Functions MCP Extension:**
 
 ```python
-# Custom connector as a Copilot Studio action (exposed via Power Platform custom connector)
-# This Python function runs in Azure Functions, registered as an action in Copilot Studio
-
-import azure.functions as func
+"""
+Implementation pattern for custom logic in Copilot Studio exposed as a **remote MCP server** using the Azure Functions MCP Extension. The Function App becomes the MCP server — Copilot Studio connects to it directly as a tool source, no intermediate flow or adapter needed.
+"""
 import json
+import azure.functions as func
+from typing import Any, Dict
 
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    data = req.get_json()
-    service_name = data.get("service_name")
+app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-    # Your business logic here
-    status = get_service_health(service_name)
+@app.mcp_tool(description="Returns the current health status of a named service")
+@app.mcp_tool_property(
+    arg_name="service_name",
+    description="Name of the service to check (e.g. payments-api, auth-service)"
+)
+def get_service_health(service_name: str) -> str:
+    status = check_health(service_name)
+    return json.dumps({
+        "service": service_name,
+        "state": status["state"],
+        "last_checked": status["timestamp"]
+    })
 
-    return func.HttpResponse(
-        json.dumps({"status": status["state"], "last_checked": status["timestamp"]}),
-        mimetype="application/json"
-    )
+def check_health(service_name: str) -> dict:
+    # Replace with your actual logic (Azure Monitor, DB, internal API, etc.)
+    return {"state": "healthy", "timestamp": "2025-01-01T00:00:00Z"}
 ```
 
-**Choose Copilot Studio when:** Business users need to author or maintain agent logic, you're deploying within Microsoft 365, or you need governance enforced by IT at the tenant level rather than by developers in code.
+**Configure the MCP server in `host.json`:**
+
+```json
+{
+  "version": "2.0",
+  "extensions": {
+    "mcp": {
+      "serverName": "ops-tools",
+      "serverVersion": "1.0.0",
+      "instructions": "Use these tools to query service health and operational status."
+    }
+  }
+}
+```
+
+**Register in Copilot Studio:**
+
+```
+Copilot Studio → Tools → Add tool → New tool → Model Context Protocol
+  Server URL:  https://<function-app>.azurewebsites.net/runtime/webhooks/mcp/
+  Auth:        API key  (x-functions-key header)
+               — or —
+               OAuth 2.0  (Authorization Code flow, Entra ID)
+```
+
+Once registered, every `@app.mcp_tool` function in your Function App appears as a callable tool in the Copilot Studio agent — no custom connector, no Power Automate flow, and no separate HTTP wrapper required.
+
+**Choose Copilot Studio when:** Business users need to author or maintain conversational logic, you're deploying within Microsoft 365 or Teams, or you need governance enforced by IT at the tenant level — while your custom tools are exposed as a governed MCP server on Azure Functions.
 
 ---
 
@@ -315,10 +543,6 @@ With GitHub Copilot's agent mode, VS Code becomes a full agent runtime: the mode
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres"],
       "env": { "POSTGRES_CONNECTION_STRING": "${env:DB_CONN}" }
-    },
-    "internal-ops": {
-      "type": "sse",
-      "url": "https://your-mcp-server.internal/sse"
     }
   }
 }
