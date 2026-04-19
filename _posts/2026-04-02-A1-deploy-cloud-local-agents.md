@@ -13,7 +13,7 @@ tag: [Agentic AI]
 - The agent runtime hosts the full stack for deploying agents and agent workflows: model, tools, MCP servers, governance. It's not just an inference endpoint anymore.
 - Managed cloud platforms (AI Foundry, Bedrock, OpenAI, Copilot Studio) give you enterprise data residency, RBAC, and audit trails — this is where production agents belong.
 - Embedded application runtimes (M365, VS Code, Dynamics, Fabric, Power Platform) meet users where they work — the agent is part of the tool, not a separate system to adopt.
-- Model Context Protocol is the connective tissue. All major runtimes now support MCP server connections — design your tools as MCP servers and they become portable across the stack.
+- Model Context Protocol is the connective tissue. Design your tools as MCP servers and they become portable across the stack. All major runtimes now support MCP server connections.
 
 ---
 
